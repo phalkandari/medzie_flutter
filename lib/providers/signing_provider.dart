@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/clients.dart';
 
 class SigningProvider extends ChangeNotifier {
-  String? username; //cause we only want this
+  String? username;
 
   Future<bool> signup({
     required String username,
@@ -20,7 +20,8 @@ class SigningProvider extends ChangeNotifier {
       });
 
       var token = response.data['token'];
-      Client.dio.options.headers['Authorization'] = 'Bearer $token';
+      Client.dio.options.headers[HttpHeaders.authorizationHeader] =
+          'Bearer $token';
 
       this.username = username;
 
