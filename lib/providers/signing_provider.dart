@@ -3,87 +3,48 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:medzie_flutter/clients.dart';
 
 import '../widgets/clients.dart';
 
 class SigningProvider extends ChangeNotifier {
-  String? username;
+  String? username; //cause we only want this
 
-  Future<String?> signup(
-      {required String username, required String password}) async {
+  Future<bool> signup({
+    required String username,
+    required String password,
+  }) async {
     try {
-      var response = await Client.dio.post('/signup/', data: {
+      var response = await Client.dio.post("/api/signup", data: {
         'username': username,
         'password': password,
       });
 
       var token = response.data['token'];
-
-      Client.dio.options.headers[HttpHeaders.authorizationHeader] =
-          'Bearer $token';
+      Client.dio.options.headers['Authorization'] = 'Bearer $token';
 
       this.username = username;
 
-      var pref = await SharedPreferences.getInstance();
-      await pref.setString('token', token);
-
-      return null;
-    } on DioError catch (e) {
-      print(e.response!.data);
-
-      if (e.response != null &&
-          e.response!.data != null &&
-          e.response!.data is Map) {
-        var map = e.response!.data as Map;
-        return map.values.first.first;
-      }
-    } catch (e) {
-      print(e);
-      return "$e";
-    }
-    return "unknown error";
-  }
-
-  Future<bool> signin(
-      {required String username, required String password}) async {
-    try {
-      var response = await Client.dio.post('/auth/signin/', data: {
-        'username': username,
-        'password': password,
-      });
-
-      var token = response.data['token'];
-
-      Client.dio.options.headers[HttpHeaders.authorizationHeader] =
-          'Bearer $token';
-
-      this.username = username;
-
-      var pref = await SharedPreferences.getInstance();
-      await pref.setString('token', token);
+      var preferences = await SharedPreferences.getInstance();
+      await preferences.setString("token", token);
 
       return true;
-    } on DioError catch (e) {
-      print(e.response!.data);
-    } catch (e) {
-      print(e);
+    } on DioError catch (exception) {
+      print(exception.response!.data);
+    } catch (exception) {
+      print("Unknown Error");
     }
     return false;
   }
 
   Future<bool> hasToken() async {
-    var pref = await SharedPreferences.getInstance();
-    var token = pref.getString('token');
+    var preferences = await SharedPreferences.getInstance();
+    var token = preferences.getString("token");
 
-    if (token == null || token.isEmpty || JwtDecoder.isExpired(token)) {
-      pref.remove("token");
-      return false;
+    if (token != null && JwtDecoder.isExpired(token)) {
+      var tokenMap = JwtDecoder.decode(token); //decoding same as jwt.io
+      username = tokenMap['username'];
+      return true;
     }
-
-    var tokenMap = JwtDecoder.decode(token);
-    username = tokenMap['username'];
-
-    return true;
+    return false;
   }
 }
