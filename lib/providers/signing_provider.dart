@@ -37,15 +37,50 @@ class SigningProvider extends ChangeNotifier {
     return false;
   }
 
-  Future<bool> hasToken() async {
-    var preferences = await SharedPreferences.getInstance();
-    var token = preferences.getString("token");
+  Future<bool> signin(
+      {required String username, required String password}) async {
+    try {
+      var response = await Client.dio.post('/api/signin/', data: {
+        'username': username,
+        'password': password,
+      });
 
-    if (token != null && JwtDecoder.isExpired(token)) {
-      var tokenMap = JwtDecoder.decode(token); //decoding same as jwt.io
-      username = tokenMap['username'];
+      var token = response.data['token'];
+
+      Client.dio.options.headers[HttpHeaders.authorizationHeader] =
+          'Bearer $token';
+
+      this.username = username;
+
+      var preferences = await SharedPreferences.getInstance();
+      await preferences.setString('token', token);
+
       return true;
+    } on DioError catch (e) {
+      print(e.response!.data);
+    } catch (e) {
+      print(e);
     }
     return false;
   }
+
+  Future<bool> hasToken() async {
+    var preferences = await SharedPreferences.getInstance();
+    var token = preferences.getString('token');
+
+    if (token == null || token.isEmpty || JwtDecoder.isExpired(token)) {
+      preferences.remove("token");
+      return false;
+    }
+
+    var tokenMap = JwtDecoder.decode(token);
+    username = tokenMap['username'];
+
+    return true;
+  }
+
+  // void logout() {
+  //   token = "";
+  //   notifyListeners();
+  // }
 }

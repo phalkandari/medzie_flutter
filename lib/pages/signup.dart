@@ -80,6 +80,23 @@ class SignUp extends StatelessWidget {
                 },
                 child: Text("sign up"),
               ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('Already have an account? '),
+                  InkWell(
+                    onTap: () {
+                      context.replace('/signin');
+                    },
+                    child: Text(
+                      'Sign in',
+                      style: TextStyle(
+                        color: Colors.blue,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
