@@ -79,8 +79,12 @@ class SigningProvider extends ChangeNotifier {
     return true;
   }
 
-  // void logout() {
-  //   token = "";
-  //   notifyListeners();
-  // }
+  void logout() async {
+    var preferences = await SharedPreferences.getInstance();
+    username = null;
+    Client.dio.options.headers.remove(HttpHeaders.authorizationHeader);
+    preferences.remove("token");
+
+    notifyListeners();
+  }
 }

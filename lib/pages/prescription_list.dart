@@ -36,15 +36,17 @@ class PrescriptionList extends StatelessWidget {
               GoRouter.of(context).push('/signup');
             },
           ),
-          // ListTile(
-          //   title: const Text("Logout"),
-          //   trailing: const Icon(Icons.logout),
-          //   onTap: () {
-          //     Provider.of<SigningProvider>(context, listen: false).logout();
-          //   },
-          // ),
+          ListTile(
+            title: const Text("Logout"),
+            trailing: const Icon(Icons.logout),
+            onTap: () {
+              context.read<SigningProvider>().logout();
+              GoRouter.of(context).go('/signin');
+            },
+          ),
         ],
       )),
+      body: Column(children: [ListTile()]),
     );
   }
 }
